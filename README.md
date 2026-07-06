@@ -1,12 +1,12 @@
-﻿# Browser Speech
+# Browser Speech
 
-High-quality, fully local text-to-speech for Windows. No cloud. No subscriptions. No accounts required.  
+High-quality, fully local text-to-speech for Windows. No cloud voice processing. No subscriptions. No accounts required.
 
-Supports voice cloning from 10 seconds of voice audio.
+Supports voice cloning from as little as 10 seconds of voice audio.
 
-After setup, Pocket voices appear as voice choices in apps that use the native Microsoft/browser speech APIs.
+After setup, Pocket voices appear as voice choices in apps that use browser speech APIs.
 
-Optomized for 100% offline use cases as these voices use a local Pocket TTS model.
+Optimized for offline use after setup, using a local Pocket TTS model.
 
 ## Quick Start for Windows
 
@@ -18,8 +18,8 @@ Optomized for 100% offline use cases as these voices use a local Pocket TTS mode
 5. Turn on `Developer mode`.
 6. Click `Load unpacked`.
 7. Select the `extension/` folder from this repo.
-8. Pin the Browser Speech icon to the tool bar 
-9. Open the Browser Speech panel by ckickingon the pinned icon.
+8. Pin the Browser Speech icon to the toolbar.
+9. Open the Browser Speech panel by clicking the pinned icon.
 10. Test a Pocket voice.
 11. Clone additional voices as needed.
 
@@ -32,7 +32,7 @@ Optomized for 100% offline use cases as these voices use a local Pocket TTS mode
 
 ## Browser Support
 
-- Chrome or Edge current stable releases are recommended.
+- Current stable releases of Chrome or Edge are recommended.
 - You do not need a special developer build, but the browser must support loading the included Manifest V3 extension.
 
 ## What Is In This Repo
@@ -68,4 +68,3 @@ See `TROUBLESHOOTING.md`.
 ## Attribution
 
 Browser Speech uses Pocket TTS model assets by Kyutai, licensed under CC-BY-4.0, and the `audio.cpp` runtime by 0xShug0, licensed under Apache-2.0.
-
