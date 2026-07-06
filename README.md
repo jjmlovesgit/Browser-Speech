@@ -6,7 +6,7 @@ Supports voice cloning from 10 seconds of voice audio.
 
 After setup, Pocket voices appear as voice choices in apps that use the native Microsoft/browser speech APIs.
 
-Optomized for 100% offline use cases.
+Optomized for 100% offline use cases as these voices use a local Pocket TTS model.
 
 ## Quick Start for Windows
 
@@ -18,8 +18,10 @@ Optomized for 100% offline use cases.
 5. Turn on `Developer mode`.
 6. Click `Load unpacked`.
 7. Select the `extension/` folder from this repo.
-8. Open the Browser Speech panel.
-9. Download voices and test a Pocket voice.
+8. Pin the Browser Speech icon to the tool bar 
+9. Open the Browser Speech panel by ckickingon the pinned icon.
+10. Test a Pocket voice.
+11. Clone additional voices as needed.
 
 ## Hardware Note
 
