@@ -17,10 +17,15 @@ Local browser text-to-speech for Windows with downloadable Pocket voices.
 
 ## Hardware Note
 
-- The app is allowed to install on lower-end Windows laptops, including machines with GPUs like an Nvidia MX550.
-- Pocket voice playback still requires a sufficiently capable Nvidia GPU.
+- Browser Speech is designed for Nvidia RTX `30xx`, `40xx`, and `50xx` GPUs.
+- It may also run on certain Nvidia `MX550` systems if enough VRAM is available, but that path is not treated as primary supported hardware.
 - On low-VRAM or unsupported CUDA hardware, setup may install correctly but Pocket runtime warmup or longer speech requests can fail.
-- Recommended supported Pocket runtime targets are modern Nvidia RTX GPUs, with `6 GB VRAM` minimum and `8 GB` preferred.
+- Recommended supported Pocket runtime targets are modern Nvidia GPUs with `6 GB VRAM` minimum and `8 GB` preferred.
+
+## Browser Support
+
+- Chrome or Edge current stable releases are recommended.
+- You do not need a special developer build, but the browser must support loading the included Manifest V3 extension.
 
 ## What Is In This Repo
 
