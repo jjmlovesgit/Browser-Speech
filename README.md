@@ -15,6 +15,13 @@ Local browser text-to-speech for Windows with downloadable Pocket voices.
 8. Open the Browser Speech panel.
 9. Download voices and test a Pocket voice.
 
+## Hardware Note
+
+- The app is allowed to install on lower-end Windows laptops, including machines with GPUs like an Nvidia MX550.
+- Pocket voice playback still requires a sufficiently capable Nvidia GPU.
+- On low-VRAM or unsupported CUDA hardware, setup may install correctly but Pocket runtime warmup or longer speech requests can fail.
+- Recommended supported Pocket runtime targets are modern Nvidia RTX GPUs, with `6 GB VRAM` minimum and `8 GB` preferred.
+
 ## What Is In This Repo
 
 - `PocketTtsCompanionSetup.exe`
