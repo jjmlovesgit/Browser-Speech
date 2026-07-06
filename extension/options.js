@@ -4,7 +4,7 @@ const DEFAULT_SERVER_EXE_PATH = `${DEFAULT_RUNTIME_ROOT}\\bin\\audiocpp_server.e
 const DEFAULT_CLI_EXE_PATH = `${DEFAULT_RUNTIME_ROOT}\\bin\\audiocpp_cli.exe`;
 const DEFAULT_SERVER_CONFIG_PATH = `${DEFAULT_RUNTIME_ROOT}\\config\\server.json`;
 const DEFAULT_POCKET_MODEL_PATH = "%LOCALAPPDATA%\\PocketTTS\\models\\pocket-tts";
-const DEFAULT_MODEL_DOWNLOAD_SOURCE = "https://github.com/jjmlovesgit/pocket-tts-companion/releases/latest/download/pocket-tts-model-minimal.json";
+const DEFAULT_MODEL_DOWNLOAD_SOURCE = "https://github.com/jjmlovesgit/Browser-Speech/releases/latest/download/pocket-tts-model-minimal.json";
 const LEGACY_SHARED_POCKET_MODEL_PATH = "C:\\Projects\\audio.cpp\\models\\pocket-tts";
 const STORAGE_KEY = "pocket-tts-settings";
 const STABLE_EXTENSION_ID = "pifppankjbmkbikobmfmbogeokenkiig";
@@ -225,6 +225,16 @@ function getConfiguredRuntimePaths() {
 
 function describeRuntimePaths(runtimePaths) {
   return `Server EXE: ${runtimePaths.serverExePath} | CLI EXE: ${runtimePaths.cliExePath} | Config: ${runtimePaths.serverConfigPath} | Model: ${runtimePaths.pocketModelPath}`;
+}
+
+function describeRuntimePathsWithResolvedModel(runtimePaths, resolvedModelPath = "") {
+  const baseDescription = describeRuntimePaths(runtimePaths);
+  const normalizedResolvedModelPath = String(resolvedModelPath || "").trim();
+  if (!normalizedResolvedModelPath || normalizedResolvedModelPath === runtimePaths.pocketModelPath) {
+    return baseDescription;
+  }
+
+  return `${baseDescription} | Resolved model: ${normalizedResolvedModelPath}`;
 }
 
 function getDefaultRuntimePaths() {
@@ -530,11 +540,16 @@ function updateRuntimeDisplay(payload = null) {
   const runtimeReady = !!payload?.runtimeReady;
   const companionInstalled = payload?.companionInstalled !== false;
   const runtimeServerUrl = payload?.serverUrl || getConfiguredServerUrl();
+  const runtimePaths = getConfiguredRuntimePaths();
 
   serverUrlDisplay.textContent = getRuntimeOwnerLabel();
   serverUrlInput.value = companionInstalled
     ? getInternalTransportLabel(runtimeServerUrl)
     : "Companion not installed yet";
+  setRuntimePathsStatus(
+    describeRuntimePathsWithResolvedModel(runtimePaths, payload?.modelPath),
+    payload?.runtimeReady ? "success" : "info"
+  );
 
   if (runtimeReady) {
     modelStatusDisplay.textContent = "Loaded";
@@ -1020,14 +1035,17 @@ function renderAvailableVoices() {
   }).join("");
 }
 
-async function logRuntimeSummary() {
+async function logRuntimeSummary(payload = null) {
   try {
     const customVoices = await getCustomVoices();
     const runtimePaths = getConfiguredRuntimePaths();
     addLog("Runtime: built-in Pocket voices use the native Pocket runtime", "info");
     addLog("Runtime: custom Pocket voices use the native bridge + audiocpp_cli with --voice-ref", "info");
     addLog(`Runtime: cli exe ${runtimePaths.cliExePath}`, "info");
-    addLog(`Runtime: model path ${runtimePaths.pocketModelPath}`, "info");
+    addLog(`Runtime: configured model path ${runtimePaths.pocketModelPath}`, "info");
+    if (payload?.modelPath) {
+      addLog(`Runtime: resolved model path ${payload.modelPath}`, "info");
+    }
     addLog(`Runtime: ${customVoices.length} custom voice${customVoices.length === 1 ? "" : "s"} saved locally`, "info");
   } catch (error) {
     addLog(`Runtime summary unavailable: ${error.message}`, "error");
@@ -1099,6 +1117,9 @@ async function checkStatus({ silent = false } = {}) {
 
     if (!silent && payload?.serverUrl) {
       addLog(`Runtime transport: ${payload.serverUrl}`, "info");
+    }
+    if (!silent && payload?.modelPath) {
+      addLog(`Runtime resolved model path: ${payload.modelPath}`, "info");
     }
 
     if (payload.runtimeReady) {
