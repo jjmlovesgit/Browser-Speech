@@ -1,6 +1,8 @@
 ﻿# Browser Speech
 
-Local browser text-to-speech for Windows with downloadable Pocket voices.
+High-quality, fully local text-to-speech for Windows. No cloud. No subscriptions. No accounts required.  
+
+Voice coning supported for 100% offline Chat Use Cases
 
 ## Quick Start for Windows
 
