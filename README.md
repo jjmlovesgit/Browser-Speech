@@ -45,5 +45,5 @@ See `TROUBLESHOOTING.md`.
 
 ## Attribution
 
-Browser Speech uses Pocket TTS model assets by Kyutai, licensed under CC-BY-4.0.
+Browser Speech uses Pocket TTS model assets by Kyutai, licensed under CC-BY-4.0, and the `audio.cpp` runtime by 0xShug0, licensed under Apache-2.0.
 
