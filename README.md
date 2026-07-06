@@ -2,7 +2,11 @@
 
 High-quality, fully local text-to-speech for Windows. No cloud. No subscriptions. No accounts required.  
 
-Voice coning supported for 100% offline Chat Use Cases
+Supports voice cloning from 10 seconds of voice audio.
+
+After setup, Pocket voices appear as voice choices in apps that use the native Microsoft/browser speech APIs.
+
+Optomized for 100% offline use cases.
 
 ## Quick Start for Windows
 
