@@ -7,6 +7,7 @@ Local browser text-to-speech for Windows with downloadable Pocket voices.
 1. Clone this repo or click GitHub `Code` -> `Download ZIP`.
 2. Extract the ZIP to a folder on your PC if you downloaded it that way.
 3. Run `PocketTtsCompanionSetup.exe`.
+   Keep the sibling `payload/` folder in the same extracted repo directory.
 4. Open `chrome://extensions` or `edge://extensions`.
 5. Turn on `Developer mode`.
 6. Click `Load unpacked`.
@@ -17,6 +18,7 @@ Local browser text-to-speech for Windows with downloadable Pocket voices.
 ## What Is In This Repo
 
 - `PocketTtsCompanionSetup.exe`
+- `payload/` installer support files required by the setup app
 - `extension/` for browser `Load unpacked`
 - `pocket-tts-model-minimal.json`
 - documentation and troubleshooting
