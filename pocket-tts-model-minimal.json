@@ -1,0 +1,30 @@
+{
+  "source": "kyutai/pocket-tts minimal English bundle (Browser Speech)",
+  "files": [
+    {
+      "path": "languages/english/model.safetensors",
+      "url": "https://github.com/jjmlovesgit/Browser-Speech/releases/latest/download/model.safetensors",
+      "size": 219029196
+    },
+    {
+      "path": "languages/english/tokenizer.model",
+      "url": "https://github.com/jjmlovesgit/Browser-Speech/releases/latest/download/tokenizer.model",
+      "size": 59339
+    },
+    {
+      "path": "languages/english/embeddings/alba.safetensors",
+      "url": "https://github.com/jjmlovesgit/Browser-Speech/releases/latest/download/alba.safetensors",
+      "size": 6194424
+    },
+    {
+      "path": "languages/english/embeddings/anna.safetensors",
+      "url": "https://github.com/jjmlovesgit/Browser-Speech/releases/latest/download/anna.safetensors",
+      "size": 7816440
+    },
+    {
+      "path": "languages/english/embeddings/michael.safetensors",
+      "url": "https://github.com/jjmlovesgit/Browser-Speech/releases/latest/download/michael.safetensors",
+      "size": 7275768
+    }
+  ]
+}
