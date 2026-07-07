@@ -25,6 +25,6 @@
 
 ## Still stuck
 
-- Rerun `setup\PocketTtsCompanionSetup.exe`.
+- Rerun `Browser Speech Setup.cmd` from the top level of the repo.
 - Reload the unpacked extension.
 
