@@ -1,4 +1,4 @@
-# Troubleshooting
+﻿# Troubleshooting
 
 ## No sound
 
@@ -25,5 +25,6 @@
 
 ## Still stuck
 
-- Rerun `PocketTtsCompanionSetup.exe`.
+- Rerun `setup\PocketTtsCompanionSetup.exe`.
 - Reload the unpacked extension.
+

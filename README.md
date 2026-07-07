@@ -1,4 +1,4 @@
-# Browser Speech
+﻿# Browser Speech
 
 High-quality, fully local text-to-speech for Windows. No cloud voice processing. No subscriptions. No accounts required.
 
@@ -12,8 +12,8 @@ Optimized for offline use after setup, using a local Pocket TTS model.
 
 1. Clone this repo or click GitHub `Code` -> `Download ZIP`.
 2. Extract the ZIP to a folder on your PC if you downloaded it that way.
-3. Run `PocketTtsCompanionSetup.exe`.
-   Keep the sibling `payload/` folder in the same extracted repo directory.
+3. Open the `setup/` folder and run `PocketTtsCompanionSetup.exe`.
+   Keep the sibling `setup/payload/` folder in the same extracted repo directory.
 4. Open `chrome://extensions` or `edge://extensions`.
 5. Turn on `Developer mode`.
 6. Click `Load unpacked`.
@@ -37,8 +37,7 @@ Optimized for offline use after setup, using a local Pocket TTS model.
 
 ## What Is In This Repo
 
-- `PocketTtsCompanionSetup.exe`
-- `payload/` installer support files required by the setup app
+- `setup/` installer app, runtime files, and `payload/`
 - `extension/` for browser `Load unpacked`
 - `pocket-tts-model-minimal.json`
 - documentation and troubleshooting
@@ -68,3 +67,4 @@ See `TROUBLESHOOTING.md`.
 ## Attribution
 
 Browser Speech uses Pocket TTS model assets by Kyutai, licensed under CC-BY-4.0, and the `audio.cpp` runtime by 0xShug0, licensed under Apache-2.0.
+
