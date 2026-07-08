@@ -10,6 +10,7 @@ const LEGACY_SHARED_POCKET_MODEL_PATH = "C:\\Projects\\audio.cpp\\models\\pocket
 const DEFAULT_POCKET_FAMILY = "pocket_tts";
 const DEFAULT_POCKET_BACKEND = "cuda";
 const OFFSCREEN_DOCUMENT_PATH = "offscreen.html";
+const CONTEXT_MENU_READ_SELECTION_ID = "browser-speech-read-selection";
 const CUSTOM_VOICES_STORAGE_KEY = "pocket-tts-custom-voices";
 const CUSTOM_VOICE_DB_NAME = "pocket-tts-custom-voices-db";
 const CUSTOM_VOICE_STORE_NAME = "voices";
@@ -42,6 +43,7 @@ let fallbackGeneration = 0;
 let supportedMappedVoicesCache = null;
 let lastFallbackUtteranceMeta = null;
 const pendingFallbackUtteranceKeys = new Set();
+let activeSelectionReadTabId = null;
 
 const VOICE_PROBE_TEXT = "Pocket voice probe.";
 const FALLBACK_DUPLICATE_WINDOW_MS = 4000;
@@ -58,6 +60,27 @@ function emitDebugLog(message, detail = null) {
     void chrome.runtime.lastError;
   });
 }
+
+function createContextMenus() {
+  chrome.contextMenus.removeAll(() => {
+    void chrome.runtime.lastError;
+    chrome.contextMenus.create({
+      id: CONTEXT_MENU_READ_SELECTION_ID,
+      title: "Read with Browser Speech",
+      contexts: ["selection"]
+    }, () => {
+      void chrome.runtime.lastError;
+    });
+  });
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  createContextMenus();
+});
+
+chrome.runtime.onStartup?.addListener(() => {
+  createContextMenus();
+});
 
 async function getConfiguredServerUrl() {
   const stored = await getStorageLocal([STORAGE_KEY]);
@@ -77,6 +100,18 @@ async function getRuntimeConfig() {
       : runtimeSettings.pocketModelPath,
     pocketFamily: DEFAULT_POCKET_FAMILY,
     pocketBackend: DEFAULT_POCKET_BACKEND
+  };
+}
+
+async function getSpeechSettings() {
+  const stored = await getStorageLocal([STORAGE_KEY]);
+  const settings = stored?.[STORAGE_KEY] || {};
+  const labels = getBuiltinVoiceLabelsFromSettings(settings);
+  return {
+    voiceName: settings.defaultVoice || getBuiltinVoiceName(DEFAULT_BUILTIN_VOICE_KEY, labels),
+    rate: clamp(settings.speed, 0.1, 10, 1),
+    pitch: clamp(settings.pitch, 0, 2, 1),
+    volume: clamp(settings.volume, 0, 1, 1)
   };
 }
 
@@ -200,6 +235,108 @@ function shouldSuppressFallbackDuplicate(utterance, options) {
   };
 }
 
+function isNativeHostCommunicationError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /native messaging host/i.test(message);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function splitLongSegment(segment, maxLength) {
+  const normalized = getNormalizedUtterance(segment);
+  if (!normalized) {
+    return [];
+  }
+
+  if (normalized.length <= maxLength) {
+    return [normalized];
+  }
+
+  const parts = [];
+  let remaining = normalized;
+  while (remaining.length > maxLength) {
+    let splitIndex = Math.max(
+      remaining.lastIndexOf(". ", maxLength),
+      remaining.lastIndexOf("? ", maxLength),
+      remaining.lastIndexOf("! ", maxLength),
+      remaining.lastIndexOf("; ", maxLength),
+      remaining.lastIndexOf(", ", maxLength),
+      remaining.lastIndexOf(": ", maxLength),
+      remaining.lastIndexOf(" ", maxLength)
+    );
+
+    if (splitIndex < Math.floor(maxLength * 0.5)) {
+      splitIndex = maxLength;
+    } else {
+      splitIndex += 1;
+    }
+
+    const chunk = remaining.slice(0, splitIndex).trim();
+    if (chunk) {
+      parts.push(chunk);
+    }
+    remaining = remaining.slice(splitIndex).trim();
+  }
+
+  if (remaining) {
+    parts.push(remaining);
+  }
+
+  return parts;
+}
+
+function splitUtteranceForNativeSpeech(utterance, maxLength = 220) {
+  const normalized = getNormalizedUtterance(utterance);
+  if (!normalized) {
+    return [];
+  }
+
+  const sentenceLikeSegments = normalized
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+
+  if (sentenceLikeSegments.length === 0) {
+    return splitLongSegment(normalized, maxLength);
+  }
+
+  const chunks = [];
+  let current = "";
+
+  for (const segment of sentenceLikeSegments) {
+    if (!current) {
+      if (segment.length <= maxLength) {
+        current = segment;
+      } else {
+        chunks.push(...splitLongSegment(segment, maxLength));
+      }
+      continue;
+    }
+
+    const candidate = `${current} ${segment}`.trim();
+    if (candidate.length <= maxLength) {
+      current = candidate;
+      continue;
+    }
+
+    chunks.push(current);
+    if (segment.length <= maxLength) {
+      current = segment;
+    } else {
+      chunks.push(...splitLongSegment(segment, maxLength));
+      current = "";
+    }
+  }
+
+  if (current) {
+    chunks.push(current);
+  }
+
+  return chunks;
+}
+
 function sendNativeCommand(message) {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendNativeMessage(BRIDGE_HOST_NAME, message, (response) => {
@@ -220,6 +357,72 @@ function getBridgeInstallCommand() {
 function clamp(value, min, max, fallback) {
   const numeric = Number.isFinite(value) ? value : fallback;
   return Math.min(max, Math.max(min, numeric));
+}
+
+function notifySelectionReadState(state, detail = null) {
+  if (!Number.isInteger(activeSelectionReadTabId)) {
+    return;
+  }
+
+  chrome.tabs.sendMessage(activeSelectionReadTabId, {
+    type: "selectionReader.playbackState",
+    state,
+    detail
+  }, () => {
+    void chrome.runtime.lastError;
+  });
+
+  if (state === "end" || state === "error" || state === "stop") {
+    activeSelectionReadTabId = null;
+  }
+}
+
+async function speakSelectedTextInTab(tabId, text) {
+  const normalizedText = String(text || "").trim();
+  if (!normalizedText) {
+    throw new Error("No selected text to read.");
+  }
+
+  activeSelectionReadTabId = tabId;
+
+  await new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, { type: "selectionReader.prepare" }, () => {
+      void chrome.runtime.lastError;
+      resolve();
+    });
+  });
+
+  chrome.tts.stop();
+
+  const speechSettings = await getSpeechSettings();
+
+  await new Promise((resolve, reject) => {
+    chrome.tts.speak(normalizedText, {
+      voiceName: speechSettings.voiceName,
+      rate: speechSettings.rate,
+      pitch: speechSettings.pitch,
+      volume: speechSettings.volume,
+      extensionId: chrome.runtime.id,
+      onEvent: (event) => {
+        if (event.type === "start") {
+          notifySelectionReadState("start");
+          return;
+        }
+
+        if (event.type === "end") {
+          notifySelectionReadState("end");
+          resolve();
+          return;
+        }
+
+        if (event.type === "error") {
+          notifySelectionReadState("error", { errorMessage: event.errorMessage || "Speech failed." });
+          reject(new Error(event.errorMessage || "Speech failed."));
+          return;
+        }
+      }
+    });
+  });
 }
 
 function arrayBufferToBase64(arrayBuffer) {
@@ -512,7 +715,7 @@ async function buildSpeechRequest(utterance, options) {
 }
 
 async function requestNativeSpeech(cliRequest) {
-  const nativeResponse = await sendNativeCommand({
+  const message = {
     command: "synthesizeSpeech",
     cliExePath: cliRequest.cliExePath,
     modelPath: cliRequest.modelPath,
@@ -522,7 +725,24 @@ async function requestNativeSpeech(cliRequest) {
     voiceId: cliRequest.voiceId,
     voiceRefBase64: cliRequest.voiceRefBase64,
     voiceRefFileName: cliRequest.voiceRefFileName
-  });
+  };
+
+  let nativeResponse;
+  try {
+    nativeResponse = await sendNativeCommand(message);
+  } catch (error) {
+    if (!isNativeHostCommunicationError(error)) {
+      throw error;
+    }
+
+    emitDebugLog("Native host communication issue during synthesis, retrying once", {
+      voiceId: cliRequest.voiceId || "",
+      textPreview: getUtterancePreview(cliRequest.text || "")
+    });
+
+    await sleep(150);
+    nativeResponse = await sendNativeCommand(message);
+  }
 
   if (!nativeResponse?.ok || !nativeResponse?.wavBase64) {
     throw new Error(nativeResponse?.error || "Native Pocket synthesis failed.");
@@ -896,32 +1116,51 @@ async function fallbackSpeakListener(utterance, options, sendTtsEvent) {
         charIndex: 0
       });
 
-      const wavBuffer = await synthesizeWavAudio(utterance, options);
-
-      if (requestGeneration !== fallbackGeneration && enqueue) {
-        emitDebugLog("Fallback speech skipped", {
+      const utteranceChunks = splitUtteranceForNativeSpeech(utterance);
+      if (utteranceChunks.length > 1) {
+        emitDebugLog("Fallback utterance chunked for synthesis", {
           utteranceLength: utterance.length,
-          utterancePreview,
-          reason: "queue invalidated after fetch"
+          chunkCount: utteranceChunks.length
         });
-        return;
       }
 
-      await ensureOffscreenDocument();
+      for (const utteranceChunk of utteranceChunks) {
+        if (requestGeneration !== fallbackGeneration && enqueue) {
+          emitDebugLog("Fallback speech skipped", {
+            utteranceLength: utterance.length,
+            utterancePreview,
+            reason: "queue invalidated before chunk fetch"
+          });
+          return;
+        }
 
-      const playbackResponse = await sendRuntimeMessage({
-        type: "offscreen.playAudio",
-        wavBytes: Array.from(new Uint8Array(wavBuffer)),
-        volume: clamp(options.volume, 0, 1, 1)
-      });
+        const wavBuffer = await synthesizeWavAudio(utteranceChunk, options);
 
-      if (!playbackResponse?.ok) {
-        throw new Error(playbackResponse?.error || "Offscreen audio playback failed.");
+        if (requestGeneration !== fallbackGeneration && enqueue) {
+          emitDebugLog("Fallback speech skipped", {
+            utteranceLength: utterance.length,
+            utterancePreview,
+            reason: "queue invalidated after fetch"
+          });
+          return;
+        }
+
+        await ensureOffscreenDocument();
+
+        const playbackResponse = await sendRuntimeMessage({
+          type: "offscreen.playAudio",
+          wavBytes: Array.from(new Uint8Array(wavBuffer)),
+          volume: clamp(options.volume, 0, 1, 1)
+        });
+
+        if (!playbackResponse?.ok) {
+          throw new Error(playbackResponse?.error || "Offscreen audio playback failed.");
+        }
       }
 
       emitDebugLog("Offscreen playback completed", {
         utterancePreview,
-        byteLength: wavBuffer.byteLength
+        chunkCount: utteranceChunks.length
       });
 
       sendTtsEvent({
@@ -990,6 +1229,20 @@ chrome.ttsEngine.onStop.addListener(() => {
   }
 
   sendRuntimeMessage({ type: "offscreen.stopAudio" }).catch(() => {});
+  notifySelectionReadState("stop");
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId !== CONTEXT_MENU_READ_SELECTION_ID || !tab?.id) {
+    return;
+  }
+
+  speakSelectedTextInTab(tab.id, info.selectionText || "")
+    .catch((error) => {
+      emitDebugLog("Selection read failed", {
+        error: error instanceof Error ? error.message : String(error)
+      });
+    });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

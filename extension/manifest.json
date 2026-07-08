@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "description": "System-wide high-quality TTS using Pocket TTS (audio.cpp)",
   "permissions": [
+    "contextMenus",
     "offscreen",
     "nativeMessaging",
     "sidePanel",
@@ -13,11 +14,25 @@
     "storage",
     "unlimitedStorage"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "tts_engine": {},
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "selection-reader.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
   "side_panel": {
     "default_path": "options.html"
   },

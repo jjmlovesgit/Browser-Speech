@@ -1,5 +1,6 @@
 let audioContext = null;
 let currentSource = null;
+let currentPlaybackSession = null;
 
 function normalizeArrayBufferLike(value) {
   if (value instanceof ArrayBuffer) {
@@ -45,6 +46,12 @@ function getAudioContext() {
 }
 
 function stopCurrentPlayback() {
+  if (currentPlaybackSession && !currentPlaybackSession.settled) {
+    currentPlaybackSession.settled = true;
+    currentPlaybackSession.stopped = true;
+    currentPlaybackSession.reject(new DOMException("Playback stopped.", "AbortError"));
+  }
+
   if (currentSource) {
     try {
       currentSource.stop();
@@ -55,6 +62,8 @@ function stopCurrentPlayback() {
     currentSource.disconnect();
     currentSource = null;
   }
+
+  currentPlaybackSession = null;
 }
 
 async function playAudioBuffer(wavBuffer, volume) {
@@ -83,10 +92,26 @@ async function playAudioBuffer(wavBuffer, volume) {
   currentSource = source;
 
   await new Promise((resolve, reject) => {
+    const session = {
+      source,
+      resolve,
+      reject,
+      settled: false,
+      stopped: false
+    };
+    currentPlaybackSession = session;
+
     source.addEventListener("ended", () => {
+      if (session.settled) {
+        return;
+      }
+      session.settled = true;
       if (currentSource === source) {
         currentSource.disconnect();
         currentSource = null;
+      }
+      if (currentPlaybackSession === session) {
+        currentPlaybackSession = null;
       }
       resolve();
     }, { once: true });
@@ -94,6 +119,12 @@ async function playAudioBuffer(wavBuffer, volume) {
     try {
       source.start();
     } catch (error) {
+      if (!session.settled) {
+        session.settled = true;
+        if (currentPlaybackSession === session) {
+          currentPlaybackSession = null;
+        }
+      }
       reject(new Error(`AudioBufferSource start failed: ${error instanceof Error ? error.message : String(error)}`));
     }
   });
@@ -105,7 +136,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then(() => sendResponse({ ok: true }))
       .catch((error) => sendResponse({
         ok: false,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
+        errorName: error?.name || ""
       }));
     return true;
   }
