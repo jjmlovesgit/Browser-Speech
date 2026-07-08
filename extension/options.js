@@ -73,7 +73,6 @@ const resetModelInstallStateBtn = document.getElementById("resetModelInstallStat
 const setWarmupStateBtn = document.getElementById("setWarmupStateBtn");
 const resetWarmupStateBtn = document.getElementById("resetWarmupStateBtn");
 const cloneNameInput = document.getElementById("cloneNameInput");
-const cloneBaseVoiceSelect = document.getElementById("cloneBaseVoiceSelect");
 const cloneWavInput = document.getElementById("cloneWavInput");
 const cloneVoiceBtn = document.getElementById("cloneVoiceBtn");
 const cloneStatus = document.getElementById("cloneStatus");
@@ -81,7 +80,6 @@ const cloneRegisteredList = document.getElementById("cloneRegisteredList");
 const localOnlyVoicesCheckbox = document.getElementById("localOnlyVoicesCheckbox");
 const voiceCountrySelect = document.getElementById("voiceCountrySelect");
 const voiceSummary = document.getElementById("voiceSummary");
-const builtinVoiceLabelsEditor = document.getElementById("builtinVoiceLabelsEditor");
 
 let settings = {};
 let isSpeaking = false;
@@ -244,6 +242,41 @@ function getDefaultRuntimePaths() {
     serverConfigPath: DEFAULT_SERVER_CONFIG_PATH,
     pocketModelPath: DEFAULT_POCKET_MODEL_PATH
   };
+}
+
+function syncAccordionSummaryState(detailsElement) {
+  if (!(detailsElement instanceof HTMLDetailsElement)) {
+    return;
+  }
+
+  const summary = detailsElement.firstElementChild;
+  if (!(summary instanceof HTMLElement)) {
+    return;
+  }
+
+  if (summary.tagName !== "SUMMARY") {
+    return;
+  }
+
+  let marker = summary.querySelector(":scope > .accordion-marker");
+  if (!(marker instanceof HTMLElement)) {
+    marker = document.createElement("span");
+    marker.className = "accordion-marker";
+    marker.setAttribute("aria-hidden", "true");
+    summary.appendChild(marker);
+  }
+
+  summary.dataset.accordionState = detailsElement.open ? "open" : "closed";
+  marker.textContent = detailsElement.open ? "-" : "+";
+}
+
+function initAccordionSummaryStates() {
+  document.querySelectorAll(".accordion-card details").forEach((detailsElement) => {
+    syncAccordionSummaryState(detailsElement);
+    detailsElement.addEventListener("toggle", () => {
+      syncAccordionSummaryState(detailsElement);
+    });
+  });
 }
 
 function removeStorageLocal(keys) {
@@ -570,7 +603,7 @@ function updateRuntimeDisplay(payload = null) {
 function applyTheme(theme) {
   const normalizedTheme = theme === "dark" ? "dark" : "light";
   document.body.dataset.theme = normalizedTheme;
-  themeToggleBtn.textContent = normalizedTheme === "dark" ? "Switch to Light" : "Switch to Dark";
+  themeToggleBtn.textContent = normalizedTheme === "dark" ? "Light Theme" : "Dark Theme";
 }
 
 function escapeHtml(value) {
@@ -630,33 +663,6 @@ function getBuiltinVoiceKeyFromName(voiceName, source = settings) {
   }
 
   return LEGACY_BUILTIN_VOICE_ALIASES[voiceName] || "";
-}
-
-function renderBuiltinVoiceLabelEditor() {
-  if (!builtinVoiceLabelsEditor) {
-    return;
-  }
-
-  const labels = getBuiltinVoiceLabels();
-  builtinVoiceLabelsEditor.innerHTML = BUILTIN_VOICE_DEFINITIONS.map((voice) => `
-    <div>
-      <label for="builtinVoiceLabel-${escapeHtml(voice.key)}" class="field-label" style="display:block; margin-bottom:6px;">${escapeHtml(voice.defaultName)}</label>
-      <input id="builtinVoiceLabel-${escapeHtml(voice.key)}" data-voice-key="${escapeHtml(voice.key)}" type="text" value="${escapeHtml(labels[voice.key])}">
-    </div>
-  `).join("");
-}
-
-function collectBuiltinVoiceLabelsFromEditor() {
-  const defaults = getDefaultBuiltinVoiceLabels();
-  const labels = {};
-
-  BUILTIN_VOICE_DEFINITIONS.forEach((voice) => {
-    const input = builtinVoiceLabelsEditor?.querySelector(`[data-voice-key="${voice.key}"]`);
-    const configuredValue = String(input?.value || "").trim();
-    labels[voice.key] = configuredValue || defaults[voice.key];
-  });
-
-  return labels;
 }
 
 function getVoiceStorageKey(voice) {
@@ -729,7 +735,6 @@ function setVoiceDisplayName(voice, nextLabel) {
     const fallbackLabel = BUILTIN_VOICE_DEFINITIONS.find((entry) => entry.key === builtinVoiceKey)?.defaultName || voiceName;
     nextBuiltinLabels[builtinVoiceKey] = trimmedLabel || fallbackLabel;
     settings.builtinVoiceLabels = nextBuiltinLabels;
-    renderBuiltinVoiceLabelEditor();
     return { builtinChanged: true };
   }
 
@@ -742,6 +747,58 @@ function setVoiceDisplayName(voice, nextLabel) {
   }
   settings[VOICE_DISPLAY_NAME_STORAGE_KEY] = nextDisplayLabels;
   return { builtinChanged: false };
+}
+
+function parseMicrosoftVoiceEditParts(label) {
+  const match = String(label || "").match(/^Microsoft\s+([^\s]+)(.*)$/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    editableToken: match[1],
+    suffix: match[2] || ""
+  };
+}
+
+function getVoiceEditModel(voice) {
+  const voiceName = typeof voice === "string" ? voice : voice?.voiceName || "";
+  const displayName = getVoiceDisplayName(voice);
+  const currentMicrosoftParts = parseMicrosoftVoiceEditParts(displayName);
+  const sourceMicrosoftParts = parseMicrosoftVoiceEditParts(voiceName);
+
+  if (currentMicrosoftParts && sourceMicrosoftParts) {
+    return {
+      mode: "microsoft-single-token",
+      inputValue: currentMicrosoftParts.editableToken,
+      placeholder: sourceMicrosoftParts.editableToken,
+      prefix: "Microsoft ",
+      suffix: sourceMicrosoftParts.suffix,
+      helperText: "Only the Microsoft voice name token is editable here."
+    };
+  }
+
+  return {
+    mode: "full-label",
+    inputValue: displayName,
+    placeholder: voiceName,
+    prefix: "",
+    suffix: "",
+    helperText: ""
+  };
+}
+
+function normalizeVoiceDisplayNameInput(voice, rawInput) {
+  const editModel = getVoiceEditModel(voice);
+  const trimmedInput = String(rawInput || "").trim();
+
+  if (editModel.mode === "microsoft-single-token") {
+    const token = trimmedInput.replace(/\s+/g, " ").trim();
+    const fallbackToken = editModel.placeholder || "Voice";
+    return `${editModel.prefix}${token || fallbackToken}${editModel.suffix}`;
+  }
+
+  return trimmedInput;
 }
 
 function findDetectedVoiceByStorageKey(storageKey) {
@@ -779,7 +836,8 @@ async function persistVoiceDisplayName(storageKey, nextLabel) {
     return;
   }
 
-  const { builtinChanged } = setVoiceDisplayName(voice, nextLabel);
+  const normalizedLabel = normalizeVoiceDisplayNameInput(voice, nextLabel);
+  const { builtinChanged } = setVoiceDisplayName(voice, normalizedLabel);
   chrome.storage.local.set({ [STORAGE_KEY]: settings });
 
   if (builtinChanged) {
@@ -798,7 +856,6 @@ async function persistVoiceDisplayName(storageKey, nextLabel) {
   renderAvailableVoices();
   renderVoiceSelectOptions(defaultVoiceSelect, pocketVoices.length > 0 ? pocketVoices : getBuiltinVoices());
   renderTestVoiceOptions(settings.defaultVoice);
-  renderBaseVoiceOptions((pocketVoices.length > 0 ? pocketVoices : getBuiltinVoices()).filter((voice) => !String(typeof voice === "string" ? voice : voice?.voiceName || "").startsWith("Pocket Clone - ")));
   renderCustomVoiceList();
 }
 
@@ -859,8 +916,31 @@ function getCanonicalPocketVoiceName(voiceName) {
   return String(voiceName || "").trim();
 }
 
+function looksLikeLocalBrowserVoice(voice) {
+  if (typeof voice === "string") {
+    return false;
+  }
+
+  if (voice?.remote === true) {
+    return false;
+  }
+
+  if (voice?.localService === true) {
+    return true;
+  }
+
+  const voiceName = String(voice?.voiceName || "").trim();
+  if (/^Microsoft\s+/i.test(voiceName)) {
+    return true;
+  }
+
+  return !voice?.extensionId;
+}
+
 function classifyVoice(voice) {
   const voiceName = typeof voice === "string" ? voice : voice?.voiceName || "";
+  const isLocalBrowserVoice = looksLikeLocalBrowserVoice(voice);
+  const isRemoteBrowserVoice = typeof voice !== "string" && voice?.remote === true;
 
   if (voiceName.startsWith("Pocket Clone - ")) {
     return {
@@ -878,6 +958,26 @@ function classifyVoice(voice) {
       badge: "Local Runtime",
       detail: "Built-in Pocket voice synthesized by the local Pocket runtime",
       tooltip: "This voice stays local. Text and audio are processed by the native Pocket runtime on this device and are not sent to a cloud TTS API by this extension.",
+      isLocal: true
+    };
+  }
+
+  if (isRemoteBrowserVoice) {
+    return {
+      kind: "remote-browser",
+      badge: "Remote Browser",
+      detail: "Browser voice from a remote network-backed engine or provider",
+      tooltip: "This browser voice is reported as remote by Chrome, so synthesis may use a network-backed service instead of staying fully local.",
+      isLocal: false
+    };
+  }
+
+  if (isLocalBrowserVoice) {
+    return {
+      kind: "local-browser",
+      badge: "Local Runtime",
+      detail: "Local browser or system voice available on this device",
+      tooltip: "This voice is exposed by the local browser or operating system and stays on this device. It is separate from the Pocket runtime voices, but it is still local.",
       isLocal: true
     };
   }
@@ -998,6 +1098,7 @@ function renderAvailableVoices() {
     const voiceName = typeof voice === "string" ? voice : voice.voiceName;
     const voiceLang = typeof voice === "string" ? "n/a" : (voice.lang || "n/a");
     const displayName = getVoiceDisplayName(voice);
+    const editModel = getVoiceEditModel(voice);
     const source = classifyVoice(voice);
     const itemClass = source.isLocal ? "voice-item" : "voice-item remote";
     const badgeClass = source.kind === "local-reference"
@@ -1022,10 +1123,11 @@ function renderAvailableVoices() {
           <div class="voice-meta">
           ${isEditing ? `
             <div class="voice-edit-row">
-              <input type="text" class="voice-display-name-input" data-voice-key="${escapeHtml(storageKey)}" value="${escapeHtml(displayName)}" placeholder="${escapeHtml(voiceName)}">
+              <input type="text" class="voice-display-name-input" data-voice-key="${escapeHtml(storageKey)}" value="${escapeHtml(editModel.inputValue)}" placeholder="${escapeHtml(editModel.placeholder)}">
               <button type="button" class="voice-edit-save-btn" data-voice-save="${escapeHtml(storageKey)}">Save</button>
               <button type="button" class="voice-edit-cancel-btn" data-voice-cancel="${escapeHtml(storageKey)}">Cancel</button>
             </div>
+            ${editModel.helperText ? `<div class="field-note">${escapeHtml(editModel.helperText)}</div>` : ""}
           ` : ""}
           <div class="voice-detail">${escapeHtml(source.detail)} • ${escapeHtml(voiceLang)}</div>
         </div>
@@ -1182,27 +1284,66 @@ async function waitForServerHealthy(timeoutMs = SERVER_START_TIMEOUT_MS) {
   return false;
 }
 
-function renderBaseVoiceOptions(voices) {
-  const normalizedVoices = voices.map((voice) => typeof voice === "string" ? { voiceName: voice } : voice);
-  const currentValue = cloneBaseVoiceSelect.value;
-
-  cloneBaseVoiceSelect.innerHTML = normalizedVoices.map((voice) => `
-    <option value="${escapeHtml(voice.voiceName)}">${escapeHtml(formatVoiceLabel(voice.voiceName))}</option>
-  `).join("");
-
-  if (currentValue && cloneBaseVoiceSelect.querySelector(`option[value="${currentValue}"]`)) {
-  cloneBaseVoiceSelect.value = currentValue;
-  return;
+async function getBrowserSpeechSynthesisVoices(timeoutMs = 1500) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window) || typeof window.speechSynthesis?.getVoices !== "function") {
+    return [];
   }
 
-  cloneBaseVoiceSelect.value = getBuiltinVoiceName(DEFAULT_BUILTIN_VOICE_KEY);
+  const mapVoices = () => window.speechSynthesis.getVoices().map((voice) => ({
+    voiceName: String(voice?.name || "").trim(),
+    lang: String(voice?.lang || "").trim(),
+    localService: voice?.localService === true,
+    voiceUri: String(voice?.voiceURI || "").trim(),
+    source: "speechSynthesis"
+  })).filter((voice) => voice.voiceName);
+
+  const initialVoices = mapVoices();
+  if (initialVoices.length > 0) {
+    return initialVoices;
+  }
+
+  return await new Promise((resolve) => {
+    let settled = false;
+    let timerId = 0;
+
+    const finish = () => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      if (timerId) {
+        window.clearTimeout(timerId);
+      }
+
+      if (typeof window.speechSynthesis.removeEventListener === "function") {
+        window.speechSynthesis.removeEventListener("voiceschanged", handleVoicesChanged);
+      }
+
+      resolve(mapVoices());
+    };
+
+    const handleVoicesChanged = () => {
+      finish();
+    };
+
+    if (typeof window.speechSynthesis.addEventListener === "function") {
+      window.speechSynthesis.addEventListener("voiceschanged", handleVoicesChanged, { once: true });
+    }
+
+    timerId = window.setTimeout(finish, timeoutMs);
+  });
 }
 
 async function loadVoices() {
   try {
-    const voices = await new Promise((resolve) => {
-      chrome.tts.getVoices(resolve);
-    });
+    const [chromeVoices, browserVoices] = await Promise.all([
+      new Promise((resolve) => {
+        chrome.tts.getVoices(resolve);
+      }),
+      getBrowserSpeechSynthesisVoices()
+    ]);
+    const voices = [...(Array.isArray(chromeVoices) ? chromeVoices : []), ...browserVoices];
 
     const sortedVoices = Array.isArray(voices) ? voices.slice().sort((left, right) => {
       const leftName = left?.voiceName || "";
@@ -1231,6 +1372,24 @@ async function loadVoices() {
       if (!seenVoiceKeys.has(voiceKey)) {
         seenVoiceKeys.add(voiceKey);
         uniqueVoices.push(voice);
+      } else {
+        const existingIndex = uniqueVoices.findIndex((candidate) => {
+          const candidateRawName = candidate?.voiceName || "";
+          const candidateName = candidateRawName.startsWith("Pocket")
+            ? getCanonicalPocketVoiceName(candidateRawName)
+            : candidateRawName;
+          const candidateLang = candidate?.lang || "";
+          return `${candidateName}::${candidateLang}` === voiceKey;
+        });
+
+        if (existingIndex >= 0) {
+          const existingVoice = uniqueVoices[existingIndex];
+          const existingLocal = looksLikeLocalBrowserVoice(existingVoice);
+          const nextLocal = looksLikeLocalBrowserVoice(voice);
+          if (!existingLocal && nextLocal) {
+            uniqueVoices[existingIndex] = { ...existingVoice, ...voice };
+          }
+        }
       }
 
       if (!rawVoiceName || !rawVoiceName.startsWith("Pocket")) {
@@ -1258,7 +1417,6 @@ async function loadVoices() {
       renderAvailableVoices();
       renderVoiceSelectOptions(defaultVoiceSelect, getBuiltinVoices());
       renderTestVoiceOptions(settings.defaultVoice);
-      renderBaseVoiceOptions(getBuiltinVoices());
       if (settings.defaultVoice && testVoiceSelect.querySelector(`option[value="${settings.defaultVoice}"]`)) {
         testVoiceSelect.value = settings.defaultVoice;
       }
@@ -1270,8 +1428,6 @@ async function loadVoices() {
 
     renderVoiceSelectOptions(defaultVoiceSelect, pocketVoices);
     renderTestVoiceOptions(settings.defaultVoice);
-
-    renderBaseVoiceOptions(pocketVoices.filter((voice) => !voice.voiceName.startsWith("Pocket Clone - ")));
     if (settings.defaultVoice && defaultVoiceSelect.querySelector(`option[value="${settings.defaultVoice}"]`)) {
       defaultVoiceSelect.value = settings.defaultVoice;
     }
@@ -1287,7 +1443,6 @@ async function loadVoices() {
     renderVoiceCountryOptions();
     renderAvailableVoices();
     renderTestVoiceOptions(settings.defaultVoice);
-    renderBaseVoiceOptions(getBuiltinVoices());
     addLog(`Failed to load voices: ${error.message}`, "error");
   }
 }
@@ -1316,7 +1471,6 @@ function loadSettings() {
     settings[VOICE_DISPLAY_NAME_STORAGE_KEY] = getVoiceDisplayLabels(settings);
     settings.defaultVoice = getCanonicalPocketVoiceName(settings.defaultVoice) || getBuiltinVoiceName(DEFAULT_BUILTIN_VOICE_KEY, settings);
 
-    renderBuiltinVoiceLabelEditor();
     defaultVoiceSelect.value = settings.defaultVoice || getBuiltinVoiceName(DEFAULT_BUILTIN_VOICE_KEY, settings);
     testVoiceSelect.value = settings.defaultVoice || getBuiltinVoiceName(DEFAULT_BUILTIN_VOICE_KEY, settings);
     speedSlider.value = settings.speed || 1.0;
@@ -1341,7 +1495,7 @@ function saveSettings() {
   settings = {
     ...settings,
     defaultVoice: defaultVoiceSelect.value,
-    builtinVoiceLabels: collectBuiltinVoiceLabelsFromEditor(),
+    builtinVoiceLabels: getBuiltinVoiceLabels(settings),
     [VOICE_DISPLAY_NAME_STORAGE_KEY]: getVoiceDisplayLabels(settings),
     speed: parseFloat(speedSlider.value),
     pitch: parseFloat(pitchSlider.value),
@@ -1516,6 +1670,50 @@ function readFileAsArrayBuffer(file) {
   });
 }
 
+function readAudioDurationSeconds(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const audio = document.createElement("audio");
+    let settled = false;
+
+    const cleanup = () => {
+      audio.removeAttribute("src");
+      audio.load();
+      URL.revokeObjectURL(objectUrl);
+    };
+
+    const finishResolve = (value) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      resolve(value);
+    };
+
+    const finishReject = (error) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+
+    audio.preload = "metadata";
+    audio.onloadedmetadata = () => {
+      const duration = Number(audio.duration);
+      if (!Number.isFinite(duration) || duration <= 0) {
+        finishReject(new Error("Could not read the WAV duration."));
+        return;
+      }
+      finishResolve(duration);
+    };
+    audio.onerror = () => finishReject(new Error("Could not read the WAV duration."));
+    audio.src = objectUrl;
+  });
+}
+
 async function listCustomVoices() {
   const db = await openCustomVoiceDatabase();
   const records = await new Promise((resolve, reject) => {
@@ -1611,7 +1809,7 @@ async function renderCustomVoiceList() {
     <div class="reference-voice-item">
       <div class="reference-voice-meta">
         <strong>${escapeHtml(formatVoiceLabel(voice.voiceName))}</strong>
-        <span class="field-note">Base: ${escapeHtml(formatVoiceLabel(voice.baseVoiceName || getBuiltinVoiceName(DEFAULT_BUILTIN_VOICE_KEY)))} • ${escapeHtml(voice.fileName || "reference.wav")}</span>
+        <span class="field-note">${escapeHtml(voice.fileName || "reference.wav")}</span>
       </div>
       <button class="btn btn-secondary remove-reference-voice-btn" data-voice-id="${escapeHtml(voice.id)}">Remove</button>
     </div>
@@ -1621,7 +1819,8 @@ async function renderCustomVoiceList() {
 async function createClonedVoice() {
   const cloneName = cloneNameInput.value.trim();
   const file = cloneWavInput.files?.[0];
-  const baseVoiceName = cloneBaseVoiceSelect.value || getBuiltinVoiceName(DEFAULT_BUILTIN_VOICE_KEY);
+  const baseVoiceName = getBuiltinVoiceName(DEFAULT_BUILTIN_VOICE_KEY);
+  const maxCustomVoiceDurationSeconds = 20;
 
   if (!cloneName) {
     setCloneStatus("Enter a voice name.", "error");
@@ -1639,10 +1838,16 @@ async function createClonedVoice() {
   }
 
   cloneVoiceBtn.disabled = true;
-  setCloneStatus("Saving custom voice WAV...", "info");
+  setCloneStatus("Validating custom voice WAV...", "info");
   addLog(`Saving local custom voice "${cloneName}"`, "info");
 
   try {
+    const durationSeconds = await readAudioDurationSeconds(file);
+    if (durationSeconds > maxCustomVoiceDurationSeconds) {
+      throw new Error(`Custom voice samples over ${maxCustomVoiceDurationSeconds} seconds are not supported.`);
+    }
+
+    setCloneStatus("Saving custom voice WAV...", "info");
     const arrayBuffer = await readFileAsArrayBuffer(file);
     const customVoices = await getCustomVoices();
     const normalizedName = `Pocket Clone - ${cloneName}`;
@@ -1916,26 +2121,32 @@ themeToggleBtn.addEventListener("click", () => {
 
 checkStatusBtn.addEventListener("click", checkStatus);
 saveSettingsBtn.addEventListener("click", saveSettings);
-saveRuntimePathsBtn.addEventListener("click", () => {
-  saveRuntimePaths().catch((error) => {
-    setRuntimePathsButtonState("Save Runtime Paths", false);
-    setRuntimePathsStatus(`Save failed: ${error.message}`, "error");
-    addLog(`Failed to save runtime paths: ${error.message}`, "error");
+if (saveRuntimePathsBtn) {
+  saveRuntimePathsBtn.addEventListener("click", () => {
+    saveRuntimePaths().catch((error) => {
+      setRuntimePathsButtonState("Save Runtime Paths", false);
+      setRuntimePathsStatus(`Save failed: ${error.message}`, "error");
+      addLog(`Failed to save runtime paths: ${error.message}`, "error");
+    });
   });
-});
-resetRuntimePathsBtn.addEventListener("click", () => {
-  resetRuntimePaths().catch((error) => {
-    setRuntimePathsStatus(`Reset failed: ${error.message}`, "error");
-    addLog(`Failed to reset runtime paths: ${error.message}`, "error");
+}
+if (resetRuntimePathsBtn) {
+  resetRuntimePathsBtn.addEventListener("click", () => {
+    resetRuntimePaths().catch((error) => {
+      setRuntimePathsStatus(`Reset failed: ${error.message}`, "error");
+      addLog(`Failed to reset runtime paths: ${error.message}`, "error");
+    });
   });
-});
-saveModelDownloadSourceBtn.addEventListener("click", () => {
-  setModelDownloadSourceStatus("Saving hosted PocketTTS model manifest URL...", "info");
-  saveCompanionModelDownloadSource().catch((error) => {
-    setModelDownloadSourceStatus(`Save failed: ${error.message}`, "error");
-    addLog(`Failed to save hosted model source: ${error.message}`, "error");
+}
+if (saveModelDownloadSourceBtn) {
+  saveModelDownloadSourceBtn.addEventListener("click", () => {
+    setModelDownloadSourceStatus("Saving hosted PocketTTS model manifest URL...", "info");
+    saveCompanionModelDownloadSource().catch((error) => {
+      setModelDownloadSourceStatus(`Save failed: ${error.message}`, "error");
+      addLog(`Failed to save hosted model source: ${error.message}`, "error");
+    });
   });
-});
+}
 setModelInstallStateBtn.addEventListener("click", () => {
   setCompanionModelState("downloading").catch((error) => {
     addLog(`Failed to start companion model download: ${error.message}`, "error");
@@ -2138,9 +2349,9 @@ startServerBtn.addEventListener("click", async () => {
 });
 
 function init() {
+  initAccordionSummaryStates();
   loadExtensionInfo();
   loadSettings();
-  renderBaseVoiceOptions(getBuiltinVoices());
   renderCustomVoiceList();
   setCloneStatus("Ready", "info");
   addLog("Pocket TTS Engine options loaded", "info");

@@ -6,55 +6,65 @@
   <title>Pocket-tts-Companion - Options</title>
   <style>
     :root {
-      --bg: #f0f2f5;
-      --card: #ffffff;
-      --card-border: #e8eaed;
-      --text: #1a1a2e;
-      --muted: #666666;
-      --accent: #4a6cf7;
-      --accent-strong: #3a5cd9;
-      --success: #28a745;
-      --danger: #dc3545;
-      --warning: #ffc107;
-      --button-secondary-bg: #e8eaed;
-      --button-secondary-text: #333333;
-      --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      --log-bg: #1a1a2e;
-      --log-text: #e0e0e0;
-      --input-bg: #ffffff;
-      --input-border: #dddddd;
-      --status-ready-bg: #e6f7e6;
-      --status-ready-text: #1e7e34;
-      --status-loading-bg: #fff3cd;
-      --status-loading-text: #856404;
-      --status-error-bg: #f8d7da;
-      --status-error-text: #721c24;
+      color-scheme: light;
+      --bg: #f4efe7;
+      --card: rgba(255, 255, 255, 0.84);
+      --card-border: #d9cdbf;
+      --text: #1f1a16;
+      --muted: #675f57;
+      --accent: #0f766e;
+      --accent-strong: #115e59;
+      --success: #2d8a57;
+      --danger: #bb4f5f;
+      --warning: #d1a23a;
+      --button-secondary-bg: rgba(255, 253, 248, 0.9);
+      --button-secondary-text: #1f1a16;
+      --shadow: 0 16px 40px rgba(31, 26, 22, 0.08);
+      --log-bg: #1f241f;
+      --log-text: #f3eee6;
+      --input-bg: #fffdf8;
+      --input-border: #d9cdbf;
+      --status-ready-bg: rgba(45, 138, 87, 0.14);
+      --status-ready-text: #205c3d;
+      --status-loading-bg: rgba(209, 162, 58, 0.16);
+      --status-loading-text: #7e5b18;
+      --status-error-bg: rgba(187, 79, 95, 0.14);
+      --status-error-text: #8a3142;
+      --hero-bg: linear-gradient(135deg, rgba(21, 39, 33, 0.98), rgba(24, 54, 45, 0.96));
+      --hero-border: rgba(36, 88, 73, 0.48);
+      --hero-text: #fff7ef;
+      --hero-muted: rgba(243, 238, 230, 0.78);
     }
 
     body[data-theme="dark"] {
-      --bg: #10141c;
-      --card: #182130;
-      --card-border: #273245;
-      --text: #eef3fb;
-      --muted: #9fb0c8;
-      --accent: #7eb6ff;
-      --accent-strong: #64a3f6;
-      --success: #46c06f;
-      --danger: #ff6b78;
-      --warning: #f1c75b;
-      --button-secondary-bg: #243246;
-      --button-secondary-text: #eef3fb;
-      --shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
-      --log-bg: #0f1622;
-      --log-text: #d7e0ef;
-      --input-bg: #101826;
-      --input-border: #33435a;
-      --status-ready-bg: rgba(70, 192, 111, 0.16);
-      --status-ready-text: #86e0a4;
-      --status-loading-bg: rgba(241, 199, 91, 0.16);
-      --status-loading-text: #f5d985;
-      --status-error-bg: rgba(255, 107, 120, 0.14);
-      --status-error-text: #ff97a1;
+      color-scheme: dark;
+      --bg: #141715;
+      --card: rgba(31, 29, 25, 0.92);
+      --card-border: #4b463b;
+      --text: #f3eee6;
+      --muted: #c4bbad;
+      --accent: #21988d;
+      --accent-strong: #9bf3e7;
+      --success: #64cb93;
+      --danger: #e38a98;
+      --warning: #e1be68;
+      --button-secondary-bg: rgba(37, 33, 28, 0.96);
+      --button-secondary-text: #f3eee6;
+      --shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+      --log-bg: #171b18;
+      --log-text: #f3eee6;
+      --input-bg: rgba(37, 33, 28, 0.96);
+      --input-border: #4b463b;
+      --status-ready-bg: rgba(100, 203, 147, 0.16);
+      --status-ready-text: #9de2bc;
+      --status-loading-bg: rgba(225, 190, 104, 0.16);
+      --status-loading-text: #efd48e;
+      --status-error-bg: rgba(227, 138, 152, 0.16);
+      --status-error-text: #f0b0ba;
+      --hero-bg: linear-gradient(135deg, rgba(18, 28, 23, 0.98), rgba(23, 46, 39, 0.97));
+      --hero-border: rgba(79, 116, 98, 0.38);
+      --hero-text: #fff7ef;
+      --hero-muted: rgba(243, 238, 230, 0.78);
     }
 
     * {
@@ -65,7 +75,10 @@
 
     body {
       font-family: "Segoe UI", Tahoma, sans-serif;
-      background: radial-gradient(circle at top, rgba(74, 108, 247, 0.10), transparent 34%), var(--bg);
+      background:
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.14), transparent 34%),
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.26), transparent 30%),
+        linear-gradient(180deg, #fbf7f1 0%, var(--bg) 100%);
       padding: 30px;
       max-width: 880px;
       margin: 0 auto;
@@ -73,45 +86,125 @@
       transition: background 0.25s ease, color 0.25s ease;
     }
 
+    .panel-shell {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    body[data-theme="dark"] {
+      background:
+        radial-gradient(circle at top right, rgba(33, 152, 141, 0.16), transparent 38%),
+        radial-gradient(circle at top left, rgba(9, 55, 46, 0.24), transparent 26%),
+        linear-gradient(180deg, #171b18 0%, var(--bg) 100%);
+    }
+
     .page-header {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 16px;
+      gap: 20px;
       margin-bottom: 24px;
     }
 
+    .hero-shell {
+      background: var(--hero-bg);
+      color: var(--hero-text);
+      border: 1px solid var(--hero-border);
+      border-radius: 24px;
+      padding: 28px 30px;
+      box-shadow: 0 20px 48px rgba(13, 19, 16, 0.18);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 14px 14px;
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    .hero-copy,
+    .hero-actions {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-copy {
+      max-width: 660px;
+    }
+
     h1 {
-      font-size: 28px;
-      color: var(--text);
+      font-size: 44px;
+      line-height: 0.98;
+      color: var(--hero-text);
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
+      letter-spacing: -0.03em;
+    }
+
+    .eyebrow {
+      color: #74fff0;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 800;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      align-self: flex-start;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(215, 205, 191, 0.28);
+      color: var(--hero-text);
+      background: rgba(43, 34, 26, 0.38);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
     .subtitle {
-      color: var(--muted);
-      font-size: 14px;
-      max-width: 560px;
+      color: var(--hero-muted);
+      font-size: 16px;
+      line-height: 1.5;
+      max-width: 720px;
     }
 
     .theme-toggle {
-      border: 1px solid var(--card-border);
-      background: var(--card);
-      color: var(--text);
+      border: 1px solid rgba(215, 205, 191, 0.28);
+      background: rgba(43, 34, 26, 0.38);
+      color: var(--hero-text);
       border-radius: 999px;
-      padding: 10px 16px;
+      padding: 12px 18px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      box-shadow: var(--shadow);
+      box-shadow: none;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .card {
       background: var(--card);
-      border-radius: 16px;
-      padding: 24px 28px;
+      border-radius: 22px;
+      padding: 26px 28px;
       margin-bottom: 20px;
       box-shadow: var(--shadow);
       border: 1px solid var(--card-border);
@@ -139,8 +232,8 @@
     .accordion-card summary {
       list-style: none;
       cursor: pointer;
-      padding: 20px 28px;
-      font-size: 18px;
+      padding: 22px 28px;
+      font-size: 17px;
       font-weight: 700;
       color: var(--text);
       user-select: none;
@@ -154,19 +247,17 @@
       display: none;
     }
 
-    .accordion-card summary::after {
-      content: "+";
-      font-size: 22px;
+    .accordion-marker {
+      font-size: 24px;
       font-weight: 400;
       color: var(--muted);
-    }
-
-    .accordion-card details[open] summary::after {
-      content: "-";
+      line-height: 1;
+      margin-left: auto;
+      flex: 0 0 auto;
     }
 
     .accordion-content {
-      padding: 0 28px 24px;
+      padding: 0 28px 26px;
     }
 
     .status-row {
@@ -174,7 +265,7 @@
       align-items: center;
       gap: 12px;
       padding: 12px 16px;
-      border-radius: 8px;
+      border-radius: 12px;
       margin-bottom: 12px;
       font-weight: 500;
     }
@@ -241,7 +332,12 @@
     input:focus {
       outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.15);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+    }
+
+    body[data-theme="dark"] select:focus,
+    body[data-theme="dark"] input:focus {
+      box-shadow: 0 0 0 3px rgba(33, 152, 141, 0.18);
     }
 
     .slider-group {
@@ -268,8 +364,8 @@
 
     .btn {
       padding: 10px 24px;
-      border: none;
-      border-radius: 8px;
+      border: 1px solid transparent;
+      border-radius: 999px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
@@ -290,6 +386,7 @@
     .btn-secondary {
       background: var(--button-secondary-bg);
       color: var(--button-secondary-text);
+      border-color: var(--card-border);
     }
 
     .btn-secondary:hover { filter: brightness(0.96); }
@@ -327,8 +424,12 @@
       gap: 8px;
       padding: 10px 12px;
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      background: rgba(74, 108, 247, 0.04);
+      border-radius: 18px;
+      background: rgba(255, 253, 248, 0.78);
+    }
+
+    body[data-theme="dark"] .voice-item {
+      background: rgba(37, 33, 28, 0.88);
     }
 
     .voice-item .check {
@@ -381,8 +482,8 @@
     }
 
     .voice-edit-btn {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -417,22 +518,22 @@
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.02em;
-      background: rgba(74, 108, 247, 0.12);
+      background: rgba(15, 118, 110, 0.12);
       color: var(--accent-strong);
     }
 
     .voice-badge.reference {
-      background: rgba(40, 167, 69, 0.14);
+      background: rgba(45, 138, 87, 0.14);
       color: var(--success);
     }
 
     .voice-badge.remote {
-      background: rgba(255, 193, 7, 0.18);
-      color: #9a6b00;
+      background: rgba(209, 162, 58, 0.18);
+      color: #8a6518;
     }
 
     body[data-theme="dark"] .voice-badge.remote {
-      color: #ffd76f;
+      color: #efd48e;
     }
 
     .voice-detail {
@@ -502,7 +603,7 @@
       font-family: "Consolas", "Courier New", monospace;
       font-size: 12px;
       padding: 16px;
-      border-radius: 8px;
+      border-radius: 18px;
       max-height: 220px;
       overflow-y: auto;
       white-space: pre-wrap;
@@ -511,8 +612,8 @@
     }
 
     .log-area .log-error { color: #f8a5b0; }
-    .log-area .log-success { color: #8bc34a; }
-    .log-area .log-info { color: #80d4ff; }
+    .log-area .log-success { color: #9de2bc; }
+    .log-area .log-info { color: #9bf3e7; }
 
     .test-area,
     .clone-grid {
@@ -597,11 +698,11 @@
       padding: 12px 14px;
       border: 1px solid var(--card-border);
       border-radius: 14px;
-      background: rgba(74, 108, 247, 0.06);
+      background: rgba(255, 253, 248, 0.78);
     }
 
     body[data-theme="dark"] .reference-voice-item {
-      background: rgba(126, 182, 255, 0.08);
+      background: rgba(37, 33, 28, 0.88);
     }
 
     .reference-voice-meta {
@@ -638,6 +739,8 @@
     @media (max-width: 600px) {
       body { padding: 16px; }
       .page-header { flex-direction: column; align-items: stretch; }
+      .hero-shell { padding: 22px 20px; }
+      h1 { font-size: 34px; }
       .card { padding: 16px; }
       .info-grid { grid-template-columns: 1fr; }
       .voice-list { grid-template-columns: 1fr; }
@@ -650,13 +753,16 @@
   </style>
 </head>
 <body data-theme="light">
+  <div class="panel-shell">
 
-  <div class="page-header">
-    <div>
-      <h1>Pocket-tts-Companion</h1>
-      <div class="subtitle">Local Pocket TTS voices for browser TTS apps using audio.cpp through a native runtime</div>
+  <div class="page-header hero-shell">
+    <div class="hero-copy">
+      <h1>Browser Speech</h1>
+      <div class="subtitle">Local natural voices and custom voices for browser text to speech applications.</div>
     </div>
-    <button id="themeToggleBtn" class="theme-toggle" type="button">Switch to Dark</button>
+    <div class="hero-actions">
+      <button id="themeToggleBtn" class="theme-toggle" type="button">Dark Theme</button>
+    </div>
   </div>
 
   <div class="card">
@@ -729,14 +835,6 @@
                 </select>
               </div>
 
-              <div style="margin-bottom: 16px;">
-                <label class="field-label" style="display: block; margin-bottom: 6px;">Built-in Voice Names</label>
-                <div id="builtinVoiceLabelsEditor" class="stack"></div>
-                <div class="field-note">
-                  These are display names only. They do not change the underlying runtime voice IDs.
-                </div>
-              </div>
-
               <div class="slider-group">
                 <label>Speed</label>
                 <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0">
@@ -770,15 +868,14 @@
                   <input id="cloneNameInput" type="text" placeholder="Sloane">
                 </div>
                 <div>
-                  <label for="cloneBaseVoiceSelect" class="field-label" style="display:block; margin-bottom:6px;">Base Pocket Voice</label>
-                  <select id="cloneBaseVoiceSelect"></select>
-                </div>
-                <div>
-                  <label for="cloneWavInput" class="field-label" style="display:block; margin-bottom:6px;">Custom Voice WAV</label>
+                  <label for="cloneWavInput" class="field-label" style="display:block; margin-bottom:6px;">Custom Voice WAV (recommended: 10-20 seconds of clean audio)</label>
                   <input id="cloneWavInput" type="file" accept=".wav,audio/wav">
                 </div>
                 <div class="field-note">
                   Add a short clean WAV sample for a custom voice. The extension registers it as a browser voice, and when that voice is selected the native Pocket runtime uses that WAV during synthesis.
+                </div>
+                <div class="field-note">
+                  Note: samples over 20 seconds will be rejected.
                 </div>
                 <div class="btn-group" style="margin-top: 0;">
                   <button id="cloneVoiceBtn" class="btn btn-primary">Add Custom Voice</button>
@@ -786,6 +883,32 @@
                 <div id="cloneStatus" class="clone-status">Ready</div>
                 <div id="cloneRegisteredList" class="reference-voice-list"></div>
               </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>Test Voices</summary>
+            <div class="accordion-content">
+              <div class="test-toolbar">
+                <label class="voice-filter" for="testLocalOnlyCheckbox">
+                  <input
+                    id="testLocalOnlyCheckbox"
+                    type="checkbox"
+                    title="Local voices stay on this device. Pocket built-in voices use the native Pocket runtime, and Pocket Local Custom voices use the native bridge plus audiocpp_cli. Remote Browser voices may use another provider and are not guaranteed to stay local."
+                  >
+                  <span>Only show local voices</span>
+                </label>
+              </div>
+              <div class="test-voice-row">
+                <label for="testVoiceSelect" class="field-label">Test Voice</label>
+                <select id="testVoiceSelect"></select>
+              </div>
+              <div class="test-area">
+                <input type="text" id="testText" value="Hello, this is a test of the Pocket TTS engine. It sounds really good!">
+                <button id="testSpeakBtn" class="btn btn-primary">Speak</button>
+                <button id="testStopBtn" class="btn btn-danger">Stop</button>
+              </div>
+              <div id="testStatus" class="status-note" style="margin-top: 8px;">Ready</div>
             </div>
           </details>
         </div>
@@ -816,24 +939,14 @@
               <div class="inline-form">
                 <label for="serverUrlInput" class="field-label">Internal Transport</label>
                 <input id="serverUrlInput" type="text" placeholder="Companion-managed local runtime transport" disabled>
-                <div class="field-note">
-                  Pocket voices are companion-managed. Any localhost endpoint shown here is only an internal transport detail, not the primary user-facing architecture. If we ever need to resolve a localhost port conflict, we should expose that as an explicit advanced runtime setting instead of treating this display as editable.
-                </div>
               </div>
               <div class="inline-form">
                 <label for="serverExePathInput" class="field-label">Companion Runtime Paths</label>
-                <input id="serverExePathInput" type="text" placeholder="%LOCALAPPDATA%\PocketTTSEngine\runtime\bin\audiocpp_server.exe">
-                <input id="cliExePathInput" type="text" placeholder="%LOCALAPPDATA%\PocketTTSEngine\runtime\bin\audiocpp_cli.exe">
-                <input id="serverConfigPathInput" type="text" placeholder="%LOCALAPPDATA%\PocketTTSEngine\runtime\config\server.json">
-                <input id="pocketModelPathInput" type="text" placeholder="%LOCALAPPDATA%\PocketTTS\models\pocket-tts">
-                <div class="inline-form-row">
-                  <button id="saveRuntimePathsBtn" class="btn btn-secondary" type="button">Save Runtime Paths</button>
-                  <button id="resetRuntimePathsBtn" class="btn btn-secondary" type="button">Reset Defaults</button>
-                </div>
-                <div id="runtimePathsStatus" class="inline-status">Using default runtime paths until you save changes.</div>
-                <div class="field-note">
-                  These paths are used for the native Pocket runtime and custom voice synthesis through <code>audiocpp_cli</code>.
-                </div>
+                <input id="serverExePathInput" type="text" placeholder="%LOCALAPPDATA%\PocketTTSEngine\runtime\bin\audiocpp_server.exe" readonly>
+                <input id="cliExePathInput" type="text" placeholder="%LOCALAPPDATA%\PocketTTSEngine\runtime\bin\audiocpp_cli.exe" readonly>
+                <input id="serverConfigPathInput" type="text" placeholder="%LOCALAPPDATA%\PocketTTSEngine\runtime\config\server.json" readonly>
+                <input id="pocketModelPathInput" type="text" placeholder="%LOCALAPPDATA%\PocketTTS\models\pocket-tts" readonly>
+                <div id="runtimePathsStatus" class="inline-status">These paths are companion-managed and shown here for reference only.</div>
               </div>
             </div>
           </details>
@@ -864,12 +977,11 @@
                 <div>
                   <label for="modelDownloadSourceInput" class="field-label" style="display:block; margin-bottom:6px;">Hosted Model Manifest URL</label>
                   <div class="inline-form-row">
-                    <input id="modelDownloadSourceInput" type="text" placeholder="https://github.com/jjmlovesgit/pocket-tts-companion/releases/latest/download/pocket-tts-model-minimal.json">
-                    <button id="saveModelDownloadSourceBtn" class="btn btn-secondary" type="button">Save Source</button>
+                    <input id="modelDownloadSourceInput" type="text" placeholder="https://github.com/jjmlovesgit/pocket-tts-companion/releases/latest/download/pocket-tts-model-minimal.json" readonly>
                   </div>
-                  <div id="modelDownloadSourceStatus" class="inline-status">Using the default GitHub Releases model manifest URL until you save a different one.</div>
+                  <div id="modelDownloadSourceStatus" class="inline-status">This source is companion-managed and shown here for reference only.</div>
                   <div class="field-note">
-                    Save the companion-owned hosted PocketTTS manifest URL here. The model downloader will fetch the minimal PocketTTS weights from that source.
+                    The model downloader fetches the minimal PocketTTS weights from this companion-managed source.
                   </div>
                 </div>
 
@@ -903,34 +1015,6 @@
   </div>
 
   <div class="card accordion-card">
-    <details>
-      <summary>Test Voices</summary>
-      <div class="accordion-content">
-        <div class="test-toolbar">
-          <label class="voice-filter" for="testLocalOnlyCheckbox">
-            <input
-              id="testLocalOnlyCheckbox"
-              type="checkbox"
-              title="Local voices stay on this device. Pocket built-in voices use the native Pocket runtime, and Pocket Local Custom voices use the native bridge plus audiocpp_cli. Remote Browser voices may use another provider and are not guaranteed to stay local."
-            >
-            <span>Only show local voices</span>
-          </label>
-        </div>
-        <div class="test-voice-row">
-          <label for="testVoiceSelect" class="field-label">Test Voice</label>
-          <select id="testVoiceSelect"></select>
-        </div>
-        <div class="test-area">
-          <input type="text" id="testText" value="Hello, this is a test of the Pocket TTS engine. It sounds really good!">
-          <button id="testSpeakBtn" class="btn btn-primary">Speak</button>
-          <button id="testStopBtn" class="btn btn-danger">Stop</button>
-        </div>
-        <div id="testStatus" class="status-note" style="margin-top: 8px;">Ready</div>
-      </div>
-    </details>
-  </div>
-
-  <div class="card accordion-card">
     <details open>
       <summary>Log</summary>
       <div class="accordion-content">
@@ -944,7 +1028,9 @@
   </div>
 
   <div class="status-note" style="text-align: center; margin-top: 20px;">
-    Pocket-tts-Companion v0.1.0
+    Browser Speech v0.1.0
+  </div>
+
   </div>
 
   <script src="options.js"></script>

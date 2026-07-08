@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhoFnuWpOCBr1Odj5KDwcjKnxgRDhHXyQ4lpbPLYJpkddLjvaZJEdpT3rxLm1Mrv2+2OudG2xXLhRjCFLOMBCnJ8DjB+CDJEiHs/JJ5WMshriz1/X90DGzm4LXhG/jKmHX3wU8BRz6CkopXx+Tx3KG86SiSptLYqzbwhcWBcUb/qd0ot50SDe694ynXrb3D7YYpplT0RnRY1GwnMtv7sJ7uIgC7sx9TDjGlSJXwNnxSCnASb7oq+cUmQd9xzrevgVDGI5LXtnsFZh04eDYAH6cRxIdg8tGBEu5nDL1EYRnzLGkQUnioFo+4qPUoNF3PICV6HtWKjlw76kXkCo617A0QIDAQAB",
-  "name": "Pocket-tts-Companion",
+  "name": "Browser Speech",
   "version": "0.1.0",
   "description": "System-wide high-quality TTS using Pocket TTS (audio.cpp)",
   "permissions": [
@@ -23,7 +23,7 @@
   },
   "options_page": "options.html",
   "action": {
-    "default_title": "Pocket-tts-Companion",
+    "default_title": "Browser Speech",
     "default_popup": "popup.html"
   },
   "icons": {

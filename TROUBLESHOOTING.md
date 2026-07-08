@@ -25,6 +25,6 @@
 
 ## Still stuck
 
-- Rerun `Browser Speech Setup.vbs` from the top level of the repo.
+- Rerun `Browser Speech Setup.exe` from the top level of the repo.
 - Reload the unpacked extension.
 
