@@ -3,7 +3,8 @@
 ### your browser TTS tools already let you pick a voice.
  
 <img width="344" height="277" alt="image" src="https://github.com/user-attachments/assets/c55ef7fb-5227-4add-be27-e812c58202d9" />
-<img width="322" height="386" alt="image" src="https://github.com/user-attachments/assets/8b673229-b07d-46fd-9c11-d72832954e4a" />
+<img width="311" height="382" alt="image" src="https://github.com/user-attachments/assets/c1b36864-5bee-49a6-80c8-1ba92ee59071" />
+
 
 
 ## Demo
