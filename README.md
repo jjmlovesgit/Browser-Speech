@@ -1,5 +1,6 @@
 ﻿# Browser Speech
-<img width="688" height="554" alt="image" src="https://github.com/user-attachments/assets/c55ef7fb-5227-4add-be27-e812c58202d9" />
+ 
+<img width="344" height="277" alt="image" src="https://github.com/user-attachments/assets/c55ef7fb-5227-4add-be27-e812c58202d9" />
 
 High-quality, fully local text-to-speech for Windows. No cloud voice processing. No subscriptions. No accounts required.
 
