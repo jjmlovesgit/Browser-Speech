@@ -13,7 +13,6 @@ Optimized for offline use after setup, using a local Pocket TTS model.
 1. Clone this repo or click GitHub `Code` -> `Download ZIP`.
 2. Extract the ZIP to a folder on your PC if you downloaded it that way.
 3. Open `setup/` and run `PocketTtsCompanionSetup.exe`.
-   The top-level `Browser Speech Setup.exe` launcher is included as a convenience, but the primary supported install path is the `setup/` folder.
 4. Open `chrome://extensions` or `edge://extensions`.
 5. Turn on `Developer mode`.
 6. Click `Load unpacked`.
@@ -37,7 +36,6 @@ Optimized for offline use after setup, using a local Pocket TTS model.
 
 ## What Is In This Repo
 
-- `Browser Speech Setup.exe` optional top-level launcher
 - `setup/` installer app, runtime files, and `payload/`
 - `extension/` for browser `Load unpacked`
 - `pocket-tts-model-minimal.json`
