@@ -8,7 +8,7 @@
 
 High-quality, fully local text-to-speech for Windows. No cloud voice processing. No subscriptions. No accounts required.
 
-Author - “Any browser-based app or extension that uses the browser/Microsoft voice selection surface can immediately access Browser Speech’s local Pocket TTS voices, giving it higher-quality local neural voices instead of being limited to the default lower-quality local voices.”
+* Any browser-based app or extension that uses the browser/Microsoft voice selection surface can immediately access Browser Speech’s local Pocket TTS voices, giving it higher-quality local neural voices instead of being limited to the default lower-quality local voices.
 
 Supports voice cloning from as little as 10 seconds of voice audio.
 
