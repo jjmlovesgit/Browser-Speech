@@ -10,7 +10,6 @@ const LEGACY_SHARED_POCKET_MODEL_PATH = "C:\\Projects\\audio.cpp\\models\\pocket
 const DEFAULT_POCKET_FAMILY = "pocket_tts";
 const DEFAULT_POCKET_BACKEND = "cuda";
 const OFFSCREEN_DOCUMENT_PATH = "offscreen.html";
-const CONTEXT_MENU_READ_SELECTION_ID = "browser-speech-read-selection";
 const CUSTOM_VOICES_STORAGE_KEY = "pocket-tts-custom-voices";
 const CUSTOM_VOICE_DB_NAME = "pocket-tts-custom-voices-db";
 const CUSTOM_VOICE_STORE_NAME = "voices";
@@ -43,7 +42,6 @@ let fallbackGeneration = 0;
 let supportedMappedVoicesCache = null;
 let lastFallbackUtteranceMeta = null;
 const pendingFallbackUtteranceKeys = new Set();
-let activeSelectionReadTabId = null;
 
 const VOICE_PROBE_TEXT = "Pocket voice probe.";
 const FALLBACK_DUPLICATE_WINDOW_MS = 4000;
@@ -60,27 +58,6 @@ function emitDebugLog(message, detail = null) {
     void chrome.runtime.lastError;
   });
 }
-
-function createContextMenus() {
-  chrome.contextMenus.removeAll(() => {
-    void chrome.runtime.lastError;
-    chrome.contextMenus.create({
-      id: CONTEXT_MENU_READ_SELECTION_ID,
-      title: "Read with Browser Speech",
-      contexts: ["selection"]
-    }, () => {
-      void chrome.runtime.lastError;
-    });
-  });
-}
-
-chrome.runtime.onInstalled.addListener(() => {
-  createContextMenus();
-});
-
-chrome.runtime.onStartup?.addListener(() => {
-  createContextMenus();
-});
 
 async function getConfiguredServerUrl() {
   const stored = await getStorageLocal([STORAGE_KEY]);
@@ -100,18 +77,6 @@ async function getRuntimeConfig() {
       : runtimeSettings.pocketModelPath,
     pocketFamily: DEFAULT_POCKET_FAMILY,
     pocketBackend: DEFAULT_POCKET_BACKEND
-  };
-}
-
-async function getSpeechSettings() {
-  const stored = await getStorageLocal([STORAGE_KEY]);
-  const settings = stored?.[STORAGE_KEY] || {};
-  const labels = getBuiltinVoiceLabelsFromSettings(settings);
-  return {
-    voiceName: settings.defaultVoice || getBuiltinVoiceName(DEFAULT_BUILTIN_VOICE_KEY, labels),
-    rate: clamp(settings.speed, 0.1, 10, 1),
-    pitch: clamp(settings.pitch, 0, 2, 1),
-    volume: clamp(settings.volume, 0, 1, 1)
   };
 }
 
@@ -357,72 +322,6 @@ function getBridgeInstallCommand() {
 function clamp(value, min, max, fallback) {
   const numeric = Number.isFinite(value) ? value : fallback;
   return Math.min(max, Math.max(min, numeric));
-}
-
-function notifySelectionReadState(state, detail = null) {
-  if (!Number.isInteger(activeSelectionReadTabId)) {
-    return;
-  }
-
-  chrome.tabs.sendMessage(activeSelectionReadTabId, {
-    type: "selectionReader.playbackState",
-    state,
-    detail
-  }, () => {
-    void chrome.runtime.lastError;
-  });
-
-  if (state === "end" || state === "error" || state === "stop") {
-    activeSelectionReadTabId = null;
-  }
-}
-
-async function speakSelectedTextInTab(tabId, text) {
-  const normalizedText = String(text || "").trim();
-  if (!normalizedText) {
-    throw new Error("No selected text to read.");
-  }
-
-  activeSelectionReadTabId = tabId;
-
-  await new Promise((resolve) => {
-    chrome.tabs.sendMessage(tabId, { type: "selectionReader.prepare" }, () => {
-      void chrome.runtime.lastError;
-      resolve();
-    });
-  });
-
-  chrome.tts.stop();
-
-  const speechSettings = await getSpeechSettings();
-
-  await new Promise((resolve, reject) => {
-    chrome.tts.speak(normalizedText, {
-      voiceName: speechSettings.voiceName,
-      rate: speechSettings.rate,
-      pitch: speechSettings.pitch,
-      volume: speechSettings.volume,
-      extensionId: chrome.runtime.id,
-      onEvent: (event) => {
-        if (event.type === "start") {
-          notifySelectionReadState("start");
-          return;
-        }
-
-        if (event.type === "end") {
-          notifySelectionReadState("end");
-          resolve();
-          return;
-        }
-
-        if (event.type === "error") {
-          notifySelectionReadState("error", { errorMessage: event.errorMessage || "Speech failed." });
-          reject(new Error(event.errorMessage || "Speech failed."));
-          return;
-        }
-      }
-    });
-  });
 }
 
 function arrayBufferToBase64(arrayBuffer) {
@@ -1229,20 +1128,6 @@ chrome.ttsEngine.onStop.addListener(() => {
   }
 
   sendRuntimeMessage({ type: "offscreen.stopAudio" }).catch(() => {});
-  notifySelectionReadState("stop");
-});
-
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== CONTEXT_MENU_READ_SELECTION_ID || !tab?.id) {
-    return;
-  }
-
-  speakSelectedTextInTab(tab.id, info.selectionText || "")
-    .catch((error) => {
-      emitDebugLog("Selection read failed", {
-        error: error instanceof Error ? error.message : String(error)
-      });
-    });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
