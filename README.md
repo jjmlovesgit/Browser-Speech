@@ -3,7 +3,7 @@
 ### your browser TTS tools already let you pick a voice.
  
 <img width="344" height="277" alt="image" src="https://github.com/user-attachments/assets/c55ef7fb-5227-4add-be27-e812c58202d9" />
-
+[![Watch the Browser Speech demo](https://img.youtube.com/vi/twe_saqG090/maxresdefault.jpg)](https://youtu.be/twe_saqG090)
 ##
 High-quality, fully local text-to-speech for Windows. No cloud voice processing. No subscriptions. No accounts required.
 
