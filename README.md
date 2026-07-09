@@ -8,7 +8,7 @@
 
 
 ## Demo
-Watch the full demo on YouTube: https://youtu.be/twe_saqG090
+Watch the 60 second demo on YouTube: https://youtu.be/twe_saqG090
 
 ##
 High-quality, fully local text-to-speech for Windows. No cloud voice processing. No subscriptions. No accounts required.
